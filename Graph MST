@@ -1,0 +1,95 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX 10
+
+typedef struct {
+    int u, v, w;  // u dan v adalah simpul, w adalah bobot (jarak)
+} Edge;
+
+typedef struct {
+    int n;          // Jumlah simpul
+    int e;          // Jumlah edge
+    Edge edge[MAX]; // Array untuk menyimpan semua edge
+} Graph;
+
+int parent[MAX];
+
+// Fungsi untuk menemukan root parent dari simpul x
+int find(int x) {
+    if (parent[x] == x) {
+        return x;
+    }
+    return find(parent[x]);
+}
+
+// Fungsi untuk menggabungkan dua set (menghubungkan dua simpul)
+void unionSets(int x, int y) {
+    int rootX = find(x);
+    int rootY = find(y);
+    parent[rootX] = rootY;
+}
+
+// Fungsi untuk mengimplementasikan Algoritma Kruskal
+void kruskal(Graph *g) {
+    Edge result[MAX];  // Array untuk menyimpan MST
+    int i, j, totalWeight = 0;
+
+    // Inisialisasi parent untuk setiap simpul
+    for (i = 0; i < g->n; i++) {
+        parent[i] = i;
+    }
+
+    // Mengurutkan edge berdasarkan bobot (jarak) secara ascending
+    for (i = 0; i < g->e; i++) {
+        for (j = i + 1; j < g->e; j++) {
+            if (g->edge[i].w > g->edge[j].w) {
+                Edge temp = g->edge[i];
+                g->edge[i] = g->edge[j];
+                g->edge[j] = temp;
+            }
+        }
+    }
+
+    int edgeCount = 0;
+    for (i = 0; i < g->e && edgeCount < g->n - 1; i++) {
+        int u = g->edge[i].u;
+        int v = g->edge[i].v;
+        int w = g->edge[i].w;
+
+        // Jika edge ini tidak menyebabkan siklus, tambahkan ke MST
+        if (find(u) != find(v)) {
+            result[edgeCount++] = g->edge[i];
+            totalWeight += w;
+            unionSets(u, v);
+        }
+    }
+
+    // Menampilkan hasil MST
+    printf("Edge \tWeight\n");
+    for (i = 0; i < edgeCount; i++) {
+        printf("%d - %d \t%d\n", result[i].u, result[i].v, result[i].w);
+    }
+    printf("Total Weight of MST: %d km\n", totalWeight);
+}
+
+int main() {
+    Graph g;
+
+    // Inisialisasi graph sesuai dengan data input
+    g.n = 5; // 5 simpul: D, K1, K2, P1, P2
+    g.e = 7; // 7 jalur yang memiliki jarak
+
+    // Memasukkan data edge dan jaraknya
+    g.edge[0] = (Edge){0, 1, 30}; // D - K1: 30 km
+    g.edge[1] = (Edge){0, 2, 20}; // D - K2: 20 km
+    g.edge[2] = (Edge){0, 3, 10};  // D - P1: 10 km
+    g.edge[3] = (Edge){1, 3, 5};  // K1 - P1: 5 km
+    g.edge[4] = (Edge){1, 4, 25}; // K1 - P2: 25 km
+    g.edge[5] = (Edge){2, 3, 13}; // K2 - P1: 13 km
+    g.edge[6] = (Edge){2, 4, 40}; // K2 - P2: 40 km
+
+    kruskal(&g); // Menjalankan algoritma Kruskal untuk mendapatkan MST
+
+    return 0;
+}
